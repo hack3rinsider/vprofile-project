@@ -1,32 +1,29 @@
-# adding repository and installing nginx		
-apt update
-apt install nginx -y
-cat <<EOT > vproapp
+#!/bin/bash
+
+# Install nginx
+sudo apt update
+sudo apt install -y nginx
+
+# Create vproapp reverse proxy config
+cat <<EOT | sudo tee /etc/nginx/sites-available/vproapp
 upstream vproapp {
-
- server app01:8080;
-
+    server app01:8080;
 }
 
 server {
+    listen 80;
 
-  listen 80;
-
-location / {
-
-  proxy_pass http://vproapp;
-
+    location / {
+        proxy_pass http://vproapp;
+    }
 }
-
-}
-
 EOT
 
-mv vproapp /etc/nginx/sites-available/vproapp
-rm -rf /etc/nginx/sites-enabled/default
-ln -s /etc/nginx/sites-available/vproapp /etc/nginx/sites-enabled/vproapp
+# Enable the new config
+sudo rm -f /etc/nginx/sites-enabled/default
+sudo ln -s /etc/nginx/sites-available/vproapp /etc/nginx/sites-enabled/vproapp
 
-#starting nginx service and firewall
-systemctl start nginx
-systemctl enable nginx
-systemctl restart nginx
+# Start and enable nginx
+sudo systemctl start nginx
+sudo systemctl enable nginx
+sudo systemctl restart nginx
