@@ -1,17 +1,24 @@
 #!/bin/bash
-sudo yum install epel-release -y
-sudo yum update -y
-sudo yum install wget -y
-cd /tmp/
-dnf -y install centos-release-rabbitmq-38
- dnf --enablerepo=centos-rabbitmq-38 -y install rabbitmq-server
- systemctl enable --now rabbitmq-server
- firewall-cmd --add-port=5672/tcp
- firewall-cmd --runtime-to-permanent
-sudo systemctl start rabbitmq-server
+
+# Remove packagecloud.io RabbitMQ repo (if it exists)
+sudo rm -f /etc/apt/sources.list.d/rabbitmq.list
+sudo rm -f /usr/share/keyrings/rabbitmq-archive-keyring.gpg
+
+# Update system and install RabbitMQ from Ubuntu's own repo
+sudo apt update
+sudo apt install -y rabbitmq-server
+
+# Enable and start RabbitMQ
 sudo systemctl enable rabbitmq-server
-sudo systemctl status rabbitmq-server
-sudo sh -c 'echo "[{rabbit, [{loopback_users, []}]}]." > /etc/rabbitmq/rabbitmq.config'
+sudo systemctl start rabbitmq-server
+
+# Allow remote access (disable loopback restriction)
+sudo mkdir -p /etc/rabbitmq
+echo '[{rabbit, [{loopback_users, []}]}].' | sudo tee /etc/rabbitmq/rabbitmq.config
+
+# Create a test user with admin rights
 sudo rabbitmqctl add_user test test
 sudo rabbitmqctl set_user_tags test administrator
+
+# Restart RabbitMQ to apply changes
 sudo systemctl restart rabbitmq-server
