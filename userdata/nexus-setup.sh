@@ -1,38 +1,52 @@
 #!/bin/bash
-yum install java-1.8.0-openjdk.x86_64 wget -y   
-mkdir -p /opt/nexus/   
-mkdir -p /tmp/nexus/                           
-cd /tmp/nexus/
-NEXUSURL="https://download.sonatype.com/nexus/3/latest-unix.tar.gz"
-wget $NEXUSURL -O nexus.tar.gz
-sleep 10
-EXTOUT=`tar xzvf nexus.tar.gz`
-NEXUSDIR=`echo $EXTOUT | cut -d '/' -f1`
-sleep 5
-rm -rf /tmp/nexus/nexus.tar.gz
-cp -r /tmp/nexus/* /opt/nexus/
-sleep 5
-useradd nexus
-chown -R nexus.nexus /opt/nexus 
-cat <<EOT>> /etc/systemd/system/nexus.service
-[Unit]                                                                          
-Description=nexus service                                                       
-After=network.target                                                            
-                                                                  
-[Service]                                                                       
-Type=forking                                                                    
-LimitNOFILE=65536                                                               
-ExecStart=/opt/nexus/$NEXUSDIR/bin/nexus start                                  
-ExecStop=/opt/nexus/$NEXUSDIR/bin/nexus stop                                    
-User=nexus                                                                      
-Restart=on-abort                                                                
-                                                                  
-[Install]                                                                       
-WantedBy=multi-user.target                                                      
 
-EOT
+# System Update & Dependencies
+apt update -y && apt install openjdk-8-jdk wget tar net-tools curl -y
 
-echo 'run_as_user="nexus"' > /opt/nexus/$NEXUSDIR/bin/nexus.rc
+# Create nexus user if not exists
+id nexus &>/dev/null || useradd -M -d /opt/nexus -s /bin/false nexus
+
+# Create required directories
+mkdir -p /opt/nexus /opt/sonatype-work
+cd /tmp
+
+# Download and extract Nexus
+wget -q https://download.sonatype.com/nexus/3/nexus-3.81.1-01-linux-x86_64.tar.gz -O nexus.tar.gz
+tar -xzf nexus.tar.gz
+
+# Move content to /opt/nexus
+mv nexus-3.81.1-01/* /opt/nexus/
+rm -rf nexus-3.81.1-01
+
+# Set ownership
+chown -R nexus:nexus /opt/nexus /opt/sonatype-work
+
+# Set nexus run user
+echo 'run_as_user="nexus"' > /opt/nexus/bin/nexus.rc
+
+# Set low-memory JVM options
+sed -i 's/-Xms.*/-Xms512m/' /opt/nexus/bin/nexus.vmoptions
+sed -i 's/-Xmx.*/-Xmx768m/' /opt/nexus/bin/nexus.vmoptions
+
+# Systemd service
+cat <<EOF > /etc/systemd/system/nexus.service
+[Unit]
+Description=Nexus Repository Manager
+After=network.target
+
+[Service]
+Type=forking
+LimitNOFILE=65536
+ExecStart=/opt/nexus/bin/nexus start
+ExecStop=/opt/nexus/bin/nexus stop
+User=nexus
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+# Start Nexus
 systemctl daemon-reload
-systemctl start nexus
 systemctl enable nexus
+systemctl start nexus
