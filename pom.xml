@@ -166,5 +166,19 @@
       <id>${NEXUS-GRP-REPO}</id>
       <url>http://${NEXUSIP}:${NEXUSPORT}/repository/${NEXUS-GRP-REPO}/</url>
     </repository>
+    </repositories>
+
+    <distributionManagement>
+        <repository>
+            <id>vprofile-release</id>
+            <url>http://44.211.159.117:8081/repository/vprofile-release/</url>
+        </repository>
+        <snapshotRepository>
+            <id>vprofile-snapshot</id>
+            <url>http://44.211.159.117:8081/repository/vprofile-snapshot/</url>
+        </snapshotRepository>
+    </distributionManagement>
+</project>
+
   </repositories>
 </project>
