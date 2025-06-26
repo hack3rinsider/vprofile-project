@@ -1,10 +1,12 @@
 version: 0.2
 
 env:
-  variables:
-    MAVEN_VERSION: 3.9.10
   parameter-store:
-    CODEARTIFACT_AUTH_TOKEN: codeartifact-token  # Optional, only if you're using SSM Parameter Store
+    LOGIN: sonartoken
+    HOST: Host
+    ORGANISATION: Organisation
+    PROJECT: Project
+    CODEARTIFACT_AUTH_TOKEN: codeartifact-token
 
 phases:
   install:
@@ -13,8 +15,7 @@ phases:
     commands:
       - mkdir -p /root/.m2
       - cp ./settings.xml /root/.m2/settings.xml
-      # If not using SSM Parameter Store, uncomment the line below and fill in actual values
-      # - export CODEARTIFACT_AUTH_TOKEN=$(aws codeartifact get-authorization-token --domain your-domain --domain-owner your-account-id --region your-region --query authorizationToken --output text)
+      - export MAVEN_VERSION=3.9.10  # Define Maven version
 
   pre_build:
     commands:
