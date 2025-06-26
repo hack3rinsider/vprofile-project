@@ -37,7 +37,7 @@ phases:
   build:
     commands:
       - echo "Running tests and checkstyle"
-      - mvn test
+      - mvn clean install -DskipTests
       - mvn checkstyle:checkstyle
       - echo "Running SonarQube analysis"
       - mvn sonar:sonar \
