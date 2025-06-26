@@ -3,6 +3,7 @@
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0 http://maven.apache.org/xsd/settings-1.0.0.xsd">
 
+  <!-- Step 4: Server credentials -->
   <servers>
     <server>
       <id>vprofileci-aws-vprofile-maven-repo</id>
@@ -11,6 +12,7 @@
     </server>
   </servers>
 
+  <!-- Step 5: Profile with repository config -->
   <profiles>
     <profile>
       <id>vprofileci-aws-vprofile-maven-repo</id>
@@ -29,5 +31,15 @@
   <activeProfiles>
     <activeProfile>vprofileci-aws-vprofile-maven-repo</activeProfile>
   </activeProfiles>
+
+  <!-- Step 6: Optional mirror setup -->
+  <mirrors>
+    <mirror>
+      <id>vprofileci-aws-vprofile-maven-repo</id>
+      <name>vprofileci-aws-vprofile-maven-repo</name>
+      <url>https://vprofileci-aws-936222783168.d.codeartifact.us-east-1.amazonaws.com/maven/vprofile-maven-repo/</url>
+      <mirrorOf>*</mirrorOf>
+    </mirror>
+  </mirrors>
 
 </settings>
