@@ -1,25 +1,27 @@
 version: 0.2
-#env: 
-  #parameter-store:
-    #CODEARTIFACT_AUTH_TOKEN: CODEARTIFACT_AUTH_TOKEN
+
 phases:
   install:
     runtime-versions:
       java: corretto17
     commands:
       - cp ./settings.xml /root/.m2/settings.xml
-      - export CODEARTIFACT_AUTH_TOKEN=`aws codeartifact get-authorization-token --domain ArtifactDomain --domain-owner ID --region REGION --query authorizationToken --output text`
+      - export CODEARTIFACT_AUTH_TOKEN=$(aws codeartifact get-authorization-token --domain ArtifactDomain --domain-owner ID --region REGION --query authorizationToken --output text)
+
   pre_build:
     commands:
       - apt-get update
-      - apt-get install -y jq 
-      - wget https://dlcdn.apache.org/maven/maven-3/3.9.4/binaries/apache-maven-3.9.4-bin.tar.gz
-      - tar xzvf apache-maven-3.9.4-bin.tar.gz
-      - ln -s apache-maven-3.9.4 maven
+      - apt-get install -y jq
+      - wget https://dlcdn.apache.org/maven/maven-3/3.9.10/binaries/apache-maven-3.9.10-bin.tar.gz
+      - tar xzvf apache-maven-3.9.10-bin.tar.gz
+      - ln -s apache-maven-3.9.10 maven
+      - export PATH=$PWD/maven/bin:$PATH
+
   build:
     commands:
       - mvn clean install -DskipTests
+
 artifacts:
   files:
-     - target/**/*.war
+    - target/**/*.war
   discard-paths: yes
