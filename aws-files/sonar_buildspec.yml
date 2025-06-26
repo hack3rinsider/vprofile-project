@@ -13,18 +13,22 @@ phases:
     runtime-versions:
       java: corretto17
     commands:
+      - echo "Setting up Maven"
       - mkdir -p /root/.m2
       - cp ./settings.xml /root/.m2/settings.xml
       - export MAVEN_VERSION=3.9.10
 
   pre_build:
     commands:
+      - echo "Installing dependencies"
       - apt-get update
       - apt-get install -y jq checkstyle unzip curl openjdk-17-jdk
+      - echo "Downloading and setting up Maven"
       - wget https://dlcdn.apache.org/maven/maven-3/${MAVEN_VERSION}/binaries/apache-maven-${MAVEN_VERSION}-bin.tar.gz
       - tar xzvf apache-maven-${MAVEN_VERSION}-bin.tar.gz
       - ln -s apache-maven-${MAVEN_VERSION} maven
       - export PATH=$PWD/maven/bin:$PATH
+      - echo "Downloading and setting up SonarScanner"
       - wget https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-3.3.0.1492-linux.zip
       - unzip sonar-scanner-cli-3.3.0.1492-linux.zip
       - export PATH=$PATH:$PWD/sonar-scanner-3.3.0.1492-linux/bin
@@ -32,16 +36,28 @@ phases:
 
   build:
     commands:
+      - echo "Running tests and checkstyle"
       - mvn test
       - mvn checkstyle:checkstyle
-      - mvn sonar:sonar -Dsonar.login=$LOGIN -Dsonar.host.url=$HOST -Dsonar.projectKey=$PROJECT -Dsonar.organization=$ORGANISATION -Dsonar.java.binaries=target/test-classes/com/visualpathit/account/controllerTest/ -Dsonar.junit.reportsPath=target/surefire-reports/ -Dsonar.jacoco.reportsPath=target/jacoco.exec -Dsonar.java.checkstyle.reportPaths=target/checkstyle-result.xml
-      - sleep 5
-      - curl https://sonarcloud.io/api/qualitygates/project_status?projectKey=$PROJECT > result.json
+      - echo "Running SonarQube analysis"
+      - mvn sonar:sonar \
+          -Dsonar.login=$LOGIN \
+          -Dsonar.host.url=$HOST \
+          -Dsonar.projectKey=$PROJECT \
+          -Dsonar.organization=$ORGANISATION \
+          -Dsonar.java.binaries=target/test-classes/com/visualpathit/account/controllerTest/ \
+          -Dsonar.junit.reportsPath=target/surefire-reports/ \
+          -Dsonar.jacoco.reportsPath=target/jacoco.exec \
+          -Dsonar.java.checkstyle.reportPaths=target/checkstyle-result.xml
+      - echo "Checking Sonar quality gate status"
+      - curl -s "https://sonarcloud.io/api/qualitygates/project_status?projectKey=$PROJECT" -o result.json
       - cat result.json
       - |
         if [ "$(jq -r '.projectStatus.status' result.json)" = "ERROR" ]; then
-          echo "Quality gate failed"
+          echo "❌ Quality gate failed"
           exit 1
+        else
+          echo "✅ Quality gate passed"
         fi
 
 artifacts:
