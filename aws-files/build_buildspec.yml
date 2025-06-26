@@ -1,20 +1,28 @@
 version: 0.2
 
+env:
+  variables:
+    MAVEN_VERSION: 3.9.10
+  parameter-store:
+    CODEARTIFACT_AUTH_TOKEN: codeartifact-token  # Optional, only if you're using SSM Parameter Store
+
 phases:
   install:
     runtime-versions:
       java: corretto17
     commands:
+      - mkdir -p /root/.m2
       - cp ./settings.xml /root/.m2/settings.xml
-      - export CODEARTIFACT_AUTH_TOKEN=$(aws codeartifact get-authorization-token --domain ArtifactDomain --domain-owner ID --region REGION --query authorizationToken --output text)
+      # If not using SSM Parameter Store, uncomment the line below and fill in actual values
+      # - export CODEARTIFACT_AUTH_TOKEN=$(aws codeartifact get-authorization-token --domain your-domain --domain-owner your-account-id --region your-region --query authorizationToken --output text)
 
   pre_build:
     commands:
       - apt-get update
       - apt-get install -y jq
-      - wget https://dlcdn.apache.org/maven/maven-3/3.9.10/binaries/apache-maven-3.9.10-bin.tar.gz
-      - tar xzvf apache-maven-3.9.10-bin.tar.gz
-      - ln -s apache-maven-3.9.10 maven
+      - wget https://dlcdn.apache.org/maven/maven-3/${MAVEN_VERSION}/binaries/apache-maven-${MAVEN_VERSION}-bin.tar.gz
+      - tar xzvf apache-maven-${MAVEN_VERSION}-bin.tar.gz
+      - ln -s apache-maven-${MAVEN_VERSION} maven
       - export PATH=$PWD/maven/bin:$PATH
 
   build:
