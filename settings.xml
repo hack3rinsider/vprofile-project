@@ -1,11 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
-          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-          xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0 http://maven.apache.org/xsd/settings-1.0.0.xsd">
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0 http://maven.apache.org/xsd/settings-1.0.0.xsd">
 
   <servers>
     <server>
-      <id>vprofileci-aws-vprofile-maven-repo</id>
+      <id>codeartifact</id>
+      <username>aws</username>
+      <password>${env.CODEARTIFACT_AUTH_TOKEN}</password>
+    </server>
+    <server>
+      <id>codeartifact-mirror</id>
       <username>aws</username>
       <password>${env.CODEARTIFACT_AUTH_TOKEN}</password>
     </server>
@@ -18,30 +23,5 @@
       <url>https://vprofileci-aws-936222783168.d.codeartifact.us-east-1.amazonaws.com/maven/vprofile-maven-repo/</url>
     </mirror>
   </mirrors>
-
-  <profiles>
-    <profile>
-      <id>codeartifact-profile</id>
-      <activation>
-        <activeByDefault>true</activeByDefault>
-      </activation>
-      <repositories>
-        <repository>
-          <id>vprofileci-aws-vprofile-maven-repo</id>
-          <url>https://vprofileci-aws-936222783168.d.codeartifact.us-east-1.amazonaws.com/maven/vprofile-maven-repo/</url>
-          <releases>
-            <enabled>true</enabled>
-          </releases>
-          <snapshots>
-            <enabled>true</enabled>
-          </snapshots>
-        </repository>
-      </repositories>
-    </profile>
-  </profiles>
-
-  <activeProfiles>
-    <activeProfile>codeartifact-profile</activeProfile>
-  </activeProfiles>
 
 </settings>
