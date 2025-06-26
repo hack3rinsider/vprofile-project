@@ -19,7 +19,8 @@
         <hibernate-validator.version>6.2.0.Final</hibernate-validator.version>
         <mysql-connector.version>8.0.33</mysql-connector.version>
         <commons-dbcp.version>2.12.0</commons-dbcp.version>
-
+        <sonar.organization>mydevopspr0jectss</sonar.organization>
+        <sonar.host.url>https://sonarcloud.io</sonar.host.url>
         <junit.version>4.13.2</junit.version>
         <logback.version>1.5.6</logback.version>
         <maven.compiler.source>17</maven.compiler.source>
