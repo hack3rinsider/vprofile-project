@@ -3,32 +3,37 @@ version: 0.2
 env:
   parameter-store:
     LOGIN: sonartoken
-    HOST: Host
-    ORGANISATION: Organisation
-    PROJECT: Project
-    CODEARTIFACT_AUTH_TOKEN: codeartifact-token
+    PROJECT: sonar_project_key
+    ORGANISATION: sonar_org
+  variables:
+    HOST: https://sonarcloud.io
 
 phases:
   install:
     runtime-versions:
       java: corretto17
     commands:
-      - mkdir -p /root/.m2
-      - cp ./settings.xml /root/.m2/settings.xml
-      - export MAVEN_VERSION=3.9.10  # Define Maven version
-
-  pre_build:
-    commands:
-      - apt-get update
-      - apt-get install -y jq
-      - wget https://dlcdn.apache.org/maven/maven-3/${MAVEN_VERSION}/binaries/apache-maven-${MAVEN_VERSION}-bin.tar.gz
-      - tar xzvf apache-maven-${MAVEN_VERSION}-bin.tar.gz
-      - ln -s apache-maven-${MAVEN_VERSION} maven
-      - export PATH=$PWD/maven/bin:$PATH
+      - echo "Installing dependencies"
+      - apt-get update && apt-get install -y jq
 
   build:
     commands:
-      - mvn clean install -DskipTests
+      - echo "Running tests and Checkstyle"
+      - mvn verify -DskipTests
+      - mvn checkstyle:checkstyle
+      - echo "Running SonarQube analysis via mvn verify"
+      - mvn -X verify org.sonarsource.scanner.maven:sonar-maven-plugin:5.1.0.4751:sonar -Dsonar.login=$LOGIN -Dsonar.projectKey=$PROJECT -Dsonar.organization=$ORGANISATION -Dsonar.host.url=$HOST -Dsonar.java.binaries=target/test-classes/com/visualpathit/account/controllerTest/ -Dsonar.junit.reportsPath=target/surefire-reports/ -Dsonar.jacoco.reportsPath=target/jacoco.exec -Dsonar.java.checkstyle.reportPaths=target/checkstyle-result.xml
+      - sleep 5
+      - echo "Checking Sonar quality gate status"
+      - curl -s "https://sonarcloud.io/api/qualitygates/project_status?projectKey=$PROJECT" -o result.json
+      - cat result.json
+      - |
+        if [ "$(jq -r '.projectStatus.status' result.json)" = "ERROR" ]; then
+          echo "Sonar Quality Gate failed"
+          exit 1
+        else
+          echo "Sonar Quality Gate passed"
+        fi
 
 artifacts:
   files:
