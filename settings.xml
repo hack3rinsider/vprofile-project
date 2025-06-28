@@ -9,18 +9,14 @@
       <username>aws</username>
       <password>${env.CODEARTIFACT_AUTH_TOKEN}</password>
     </server>
-    <server>
-      <id>codeartifact-mirror</id>
-      <username>aws</username>
-      <password>${env.CODEARTIFACT_AUTH_TOKEN}</password>
-    </server>
   </servers>
 
   <mirrors>
     <mirror>
-      <id>codeartifact-mirror</id>
-      <mirrorOf>*</mirrorOf>
+      <id>codeartifact</id>
+      <name>vprofileci-aws-vprofile-maven-repo</name>
       <url>https://vprofileci-aws-936222783168.d.codeartifact.us-east-1.amazonaws.com/maven/vprofile-maven-repo/</url>
+      <mirrorOf>*</mirrorOf>
     </mirror>
   </mirrors>
 
