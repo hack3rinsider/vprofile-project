@@ -2,38 +2,29 @@ version: 0.2
 
 env:
   parameter-store:
-    LOGIN: sonartoken
-    PROJECT: sonar_project_key
-    ORGANISATION: sonar_org
-  variables:
-    HOST: https://sonarcloud.io
+    CODEARTIFACT_AUTH_TOKEN: codeartifact-token
 
 phases:
   install:
     runtime-versions:
       java: corretto17
     commands:
-      - echo "Installing dependencies"
-      - apt-get update && apt-get install -y jq
+      - echo "Using Corretto 17 with APT-installed Maven"
+      - mkdir -p /root/.m2
+
+      # Replace token in settings.xml at runtime
+      - |
+        sed "s|{{CODEARTIFACT_AUTH_TOKEN}}|$CODEARTIFACT_AUTH_TOKEN|g" ./settings.xml > /root/.m2/settings.xml
+
+  pre_build:
+    commands:
+      - apt-get update -y
+      - apt-get install -y jq maven
 
   build:
     commands:
-      - echo "Running tests and Checkstyle"
-      - mvn verify -DskipTests
-      - mvn checkstyle:checkstyle
-      - echo "Running SonarQube analysis via mvn verify"
-      - mvn -X verify org.sonarsource.scanner.maven:sonar-maven-plugin:5.1.0.4751:sonar -Dsonar.login=$LOGIN -Dsonar.projectKey=$PROJECT -Dsonar.organization=$ORGANISATION -Dsonar.host.url=$HOST -Dsonar.java.binaries=target/test-classes/com/visualpathit/account/controllerTest/ -Dsonar.junit.reportsPath=target/surefire-reports/ -Dsonar.jacoco.reportsPath=target/jacoco.exec -Dsonar.java.checkstyle.reportPaths=target/checkstyle-result.xml
-      - sleep 5
-      - echo "Checking Sonar quality gate status"
-      - curl -s "https://sonarcloud.io/api/qualitygates/project_status?projectKey=$PROJECT" -o result.json
-      - cat result.json
-      - |
-        if [ "$(jq -r '.projectStatus.status' result.json)" = "ERROR" ]; then
-          echo "Sonar Quality Gate failed"
-          exit 1
-        else
-          echo "Sonar Quality Gate passed"
-        fi
+      - echo "Starting Maven Build"
+      - mvn clean install -DskipTests
 
 artifacts:
   files:
