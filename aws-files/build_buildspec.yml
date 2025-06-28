@@ -11,8 +11,6 @@ phases:
     commands:
       - echo "Using Corretto 17 with APT-installed Maven"
       - mkdir -p /root/.m2
-
-      # Replace token in settings.xml at runtime
       - |
         sed "s|{{CODEARTIFACT_AUTH_TOKEN}}|$CODEARTIFACT_AUTH_TOKEN|g" ./settings.xml > /root/.m2/settings.xml
 
@@ -25,8 +23,10 @@ phases:
     commands:
       - echo "Starting Maven Build"
       - mvn clean install -DskipTests
+      - TIMESTAMP=$(date +%Y%m%d%H%M%S)
+      - cp target/*.war target/vprofile-v2-$TIMESTAMP.war
 
 artifacts:
   files:
-    - target/**/*.war
+    - target/vprofile-v2-*.war
   discard-paths: yes
