@@ -2,7 +2,7 @@
 
 set -e  # Exit on any error
 
-# Update package list
+# Update package lists
 sudo apt update -y
 
 # Install Java 17 (preferred for Jenkins on Ubuntu 22.04+)
